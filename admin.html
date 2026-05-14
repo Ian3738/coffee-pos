@@ -93,7 +93,101 @@
     grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
-  @media (max-width: 900px) { .row-2 { grid-template-columns: 1fr; } }
+
+  /* ============ 響應式設計 ============ */
+
+  /* iPad 直立 + 平板 (≤1024px) */
+  @media (max-width: 1024px) {
+    .row-2 { grid-template-columns: 1fr; }
+    .container { padding: 16px 20px; }
+    header { padding: 16px 20px; }
+    header h1 { font-size: 19px; }
+
+    /* 分頁可橫向捲動 */
+    .tabs {
+      padding: 0 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 14px 18px;
+      font-size: 14px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-value { font-size: 24px; }
+
+    /* 訂單卡片給觸控更大空間 */
+    .order-card { padding: 16px; }
+    .status-actions { gap: 8px; }
+
+    /* 表格內距加大,字稍微再大一點 */
+    th, td { padding: 12px 8px; font-size: 14px; }
+
+    /* 菜單管理表格在小螢幕橫捲 */
+    .card table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  /* 手機 (≤640px) */
+  @media (max-width: 640px) {
+    .container { padding: 12px; }
+    header {
+      padding: 14px 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header h1 { font-size: 16px; }
+    header p { font-size: 11px; }
+    header a { font-size: 12px; padding: 5px 10px; }
+
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .stat-value { font-size: 20px; }
+    .stat-label { font-size: 12px; }
+
+    .card { padding: 16px; }
+    .card h3 { font-size: 15px; flex-wrap: wrap; gap: 8px; }
+
+    .filter-bar { gap: 6px; }
+    .filter-bar select, .filter-bar input { padding: 10px; font-size: 13px; }
+
+    .order-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .order-foot { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .status-actions { width: 100%; justify-content: flex-end; }
+
+    .modal { padding: 20px; }
+    .modal h3 { font-size: 16px; }
+  }
+
+  /* 觸控裝置:加大可點擊區域 */
+  @media (hover: none) and (pointer: coarse) {
+    .tab { padding: 16px 22px; font-size: 15px; }
+    .btn { padding: 10px 16px; font-size: 14px; min-height: 40px; }
+    .filter-bar select, .filter-bar input {
+      padding: 10px 12px; font-size: 14px; min-height: 40px;
+    }
+    .toggle { width: 52px; height: 28px; }
+    .toggle-slider { border-radius: 28px; }
+    .toggle-slider:before { height: 22px; width: 22px; }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(24px); }
+    .field input, .field select, .field textarea {
+      padding: 12px; font-size: 14px; min-height: 44px;
+    }
+    .checkbox-row label { padding: 6px 0; font-size: 14px; }
+    .checkbox-row input[type=checkbox] {
+      width: 20px; height: 20px;
+    }
+    /* 表格按鈕間距 */
+    td .btn { margin: 2px; }
+  }
 
   .card {
     background: var(--card);

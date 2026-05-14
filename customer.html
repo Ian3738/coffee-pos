@@ -255,10 +255,111 @@
   }
   .toast.show { opacity: 1; }
 
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; padding: 16px; }
-    .cart { position: relative; top: 0; }
-    header { padding: 18px 20px; }
+  /* ============ 響應式設計 ============ */
+
+  /* iPad 直立 + 平板 (≤1024px):單欄,菜單上、購物車下 */
+  @media (max-width: 1024px) {
+    .layout {
+      grid-template-columns: 1fr;
+      padding: 16px;
+      gap: 20px;
+      padding-bottom: 100px; /* 留位置給浮動結帳列 */
+    }
+    .cart {
+      position: relative;
+      top: auto;
+    }
+    .menu-grid {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    header { padding: 18px 24px; }
+    header h1 { font-size: 22px; letter-spacing: 1px; }
+    header p { font-size: 12px; }
+
+    /* 浮動結帳列 — 永遠在螢幕底部,有商品時顯示 */
+    .floating-checkout {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.18);
+      z-index: 50;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .floating-checkout.show { display: flex; }
+    .floating-checkout .fc-info { display: flex; gap: 14px; align-items: center; }
+    .floating-checkout .fc-count {
+      background: rgba(255,255,255,0.25);
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+    .floating-checkout .fc-go {
+      background: #fff; color: var(--primary);
+      padding: 8px 18px; border-radius: 8px;
+      font-weight: 700;
+    }
+  }
+
+  /* 小手機 (≤640px) */
+  @media (max-width: 640px) {
+    .layout { padding: 12px; gap: 14px; }
+    .menu-grid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .menu-item { padding: 14px; }
+    .menu-item .icon { font-size: 38px; }
+    .menu-item .name { font-size: 14px; }
+    .menu-item .desc { font-size: 11px; min-height: 28px; }
+    .menu-item .price { font-size: 16px; }
+
+    header {
+      padding: 14px 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    header h1 { font-size: 18px; letter-spacing: 0.5px; }
+    header p { font-size: 11px; line-height: 1.4; }
+    .header-actions a { font-size: 11px; padding: 5px 10px; }
+
+    .modal { padding: 22px; border-radius: 12px; }
+    .modal h3 { font-size: 17px; }
+    .quick-cash { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* 觸控裝置:加大可點擊區域 (Apple HIG: 最小 44px) */
+  @media (hover: none) and (pointer: coarse) {
+    .qty-btn {
+      width: 36px; height: 36px;
+      font-size: 18px;
+      border-width: 1.5px;
+    }
+    .opt-btn {
+      padding: 12px 18px;
+      font-size: 14px;
+      min-height: 44px;
+    }
+    #qtyDisplay { min-width: 80px !important; }
+    .cat-btn {
+      padding: 10px 20px;
+      min-height: 40px;
+      font-size: 14px;
+    }
+    .menu-item { padding: 18px; }
+    .checkout-btn { padding: 16px; font-size: 17px; }
+    .cash-btn { padding: 12px; font-size: 14px; min-height: 44px; }
+    .pay-input { padding: 14px; font-size: 20px; }
+    .remove-btn { padding: 8px 12px; font-size: 13px; min-height: 36px; }
+    /* 取消 hover transform,觸控不該有 hover 效果停留 */
+    .menu-item:hover { transform: none; }
   }
 </style>
 </head>
@@ -383,6 +484,15 @@
       <button class="btn btn-primary" onclick="newOrder()">新訂單</button>
     </div>
   </div>
+</div>
+
+<!-- 浮動結帳列 (僅在 ≤1024px 顯示) -->
+<div class="floating-checkout" id="floatingCheckout" onclick="openCheckout()">
+  <div class="fc-info">
+    <span class="fc-count" id="fcCount">0 件</span>
+    <span id="fcTotal">$0</span>
+  </div>
+  <span class="fc-go">前往結帳 →</span>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -579,11 +689,14 @@ function renderCart() {
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.getElementById('checkoutBtn');
 
+  const floating = document.getElementById('floatingCheckout');
+
   if (cart.length === 0) {
     container.innerHTML = '<div class="cart-empty">尚未加入任何品項</div>';
     totalEl.style.display = 'none';
     checkoutBtn.disabled = true;
     document.getElementById('cartCount').textContent = '0';
+    floating.classList.remove('show');
     return;
   }
 
@@ -613,6 +726,11 @@ function renderCart() {
   document.getElementById('cartCount').textContent = itemCount;
   totalEl.style.display = '';
   checkoutBtn.disabled = false;
+
+  // 更新浮動結帳列
+  document.getElementById('fcCount').textContent = itemCount + ' 件';
+  document.getElementById('fcTotal').textContent = '$' + subtotal;
+  floating.classList.add('show');
 }
 
 function removeItem(i) { cart.splice(i, 1); renderCart(); }
