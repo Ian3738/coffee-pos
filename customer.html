@@ -35,6 +35,7 @@
   }
   header h1 { font-size: 28px; letter-spacing: 2px; }
   header p { opacity: 0.85; margin-top: 4px; font-size: 14px; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   header a {
     color: rgba(255,255,255,0.85);
     font-size: 13px;
@@ -42,8 +43,38 @@
     border: 1px solid rgba(255,255,255,0.3);
     padding: 6px 14px;
     border-radius: 20px;
+    cursor: pointer;
   }
   header a:hover { background: rgba(255,255,255,0.1); }
+
+  /* 品牌故事 */
+  .story-modal h3 { font-size: 22px; text-align: center; margin-bottom: 6px; color: var(--primary); }
+  .story-modal .en-tagline {
+    text-align: center; font-style: italic; color: var(--muted);
+    font-size: 13px; margin-bottom: 24px;
+    padding-bottom: 16px; border-bottom: 1.5px solid var(--border);
+  }
+  .story-modal .story-body {
+    line-height: 1.9; color: var(--text); font-size: 14px;
+  }
+  .story-modal .story-body p { margin-bottom: 14px; }
+  .story-modal .story-quote {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+    padding: 14px 0;
+    margin: 16px 0;
+    border-top: 1px dashed var(--accent);
+    border-bottom: 1px dashed var(--accent);
+    letter-spacing: 1px;
+  }
+  .story-modal .signature {
+    text-align: right;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
 
   .layout {
     display: grid;
@@ -235,10 +266,13 @@
 
 <header>
   <div>
-    <h1>☕ 晤光咖啡 Sunlit Café</h1>
-    <p>自助點餐系統 · Self-Order Kiosk</p>
+    <h1>☕ 晤光咖啡 Wu-Guang Café</h1>
+    <p>在相晤之間,看見光 · Where understanding brews illumination</p>
   </div>
-  <a href="admin.html" target="_blank">後台管理 →</a>
+  <div class="header-actions">
+    <a href="#" onclick="showModal('storyModal'); return false;">📖 品牌故事</a>
+    <a href="admin.html" target="_blank">後台管理 →</a>
+  </div>
 </header>
 
 <div class="layout">
@@ -264,6 +298,22 @@
     </div>
     <button class="checkout-btn" id="checkoutBtn" disabled>前往結帳</button>
   </aside>
+</div>
+
+<div class="modal-overlay" id="storyModal">
+  <div class="modal story-modal">
+    <h3>☕ 晤光咖啡 Wu-Guang Café</h3>
+    <p class="en-tagline">Where understanding brews illumination</p>
+    <div class="story-body">
+      <div class="story-quote">「在相晤之間,看見光。」</div>
+      <p>經由熱水浸潤咖啡粉,啜飲一杯有人的溫度的咖啡,在每一個「武」后時「光」。</p>
+      <p>讓我們在咖啡中相晤,成為彼此生命中的一道光 ~</p>
+      <div class="signature">— Wu-Guang Café</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('storyModal')">開始點餐</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="customModal">
@@ -627,7 +677,7 @@ function showReceipt(order) {
 
   document.getElementById('receiptContent').innerHTML = `
     <div class="receipt-head">
-      <div class="shop-name">晤光咖啡 Sunlit Café</div>
+      <div class="shop-name">晤光咖啡 Wu-Guang Café</div>
       <div class="order-no">單號 ${order.order_no}</div>
       <div class="order-no">${time}</div>
     </div>
@@ -636,7 +686,7 @@ function showReceipt(order) {
     <div class="receipt-line receipt-total"><span>合計</span><span>$${order.total}</span></div>
     <div class="receipt-line"><span>實收</span><span>$${order.cash_received}</span></div>
     <div class="receipt-line"><span>找零</span><span>$${order.change_given}</span></div>
-    <div class="receipt-foot">~ 謝謝光臨,期待再見 ~</div>
+    <div class="receipt-foot">~ 在咖啡中相晤,願您今日有光 ~</div>
   `;
   showModal('receiptModal');
 }
