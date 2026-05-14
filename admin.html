@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暖陽咖啡 · 後台管理</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --primary: #6f4e37;
+    --primary-dark: #4a3424;
+    --accent: #c89b6f;
+    --text: #2d211a;
+    --muted: #8a7969;
+    --border: #e2d8cb;
+    --success: #4a7c59;
+    --warn: #c98a3a;
+    --danger: #b54545;
+    --info: #4a6c8a;
+  }
+  body {
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: #fff;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  header h1 { font-size: 22px; }
+  header p { opacity: 0.8; font-size: 12px; margin-top: 2px; }
+  header a {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  header a:hover { background: rgba(255,255,255,0.1); }
+
+  .tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+  }
+  .tab {
+    padding: 16px 24px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 15px;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+  .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* 儀表板 */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .stat-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); }
+  .stat-value.success { color: var(--success); }
+  .stat-value.info { color: var(--info); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .row-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.num { text-align: right; font-weight: 600; }
+  tr:hover td { background: #faf8f5; }
+
+  /* 訂單卡片 */
+  .order-list { display: grid; gap: 12px; }
+  .order-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--muted);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .order-card.s-pending { border-left-color: var(--warn); }
+  .order-card.s-preparing { border-left-color: var(--info); }
+  .order-card.s-ready { border-left-color: var(--success); }
+  .order-card.s-completed { border-left-color: var(--muted); opacity: 0.75; }
+  .order-card.s-cancelled { border-left-color: var(--danger); opacity: 0.6; }
+
+  .order-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .order-no { font-weight: 700; font-size: 15px; }
+  .order-time { font-size: 12px; color: var(--muted); }
+  .order-items {
+    font-size: 13px;
+    color: var(--text);
+    margin: 8px 0;
+    line-height: 1.7;
+  }
+  .order-items .opts { color: var(--muted); font-size: 11px; padding-left: 8px; }
+  .order-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .order-total { font-weight: 700; color: var(--primary); }
+  .status-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+  .btn-warn { background: var(--warn); color: #fff; border-color: var(--warn); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.s-pending { background: #fdf3e3; color: var(--warn); }
+  .badge.s-preparing { background: #e3edf6; color: var(--info); }
+  .badge.s-ready { background: #e3f0e6; color: var(--success); }
+  .badge.s-completed { background: #ecebe9; color: var(--muted); }
+  .badge.s-cancelled { background: #fae3e3; color: var(--danger); }
+
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-bar select, .filter-bar input {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  /* 菜單管理 */
+  .menu-table img.icon-cell { font-size: 22px; }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: var(--muted); }
+  .field input, .field select, .field textarea {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--primary); }
+  .checkbox-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding-top: 8px; }
+  .checkbox-row label { font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; padding: 24px;
+    max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  .toast {
+    position: fixed; top: 80px; right: 24px;
+    background: var(--success); color: #fff;
+    padding: 12px 20px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 200; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--danger); }
+
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* 售完樣式 */
+  .sold-out { background: #fdf0f0 !important; }
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px; height: 22px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    border-radius: 22px;
+    transition: 0.2s;
+  }
+  .toggle-slider:before {
+    content: "";
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--success); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+  .auto-refresh-note {
+    font-size: 11px; color: var(--muted); margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📊 暖陽咖啡 · 後台管理</h1>
+    <p>Admin Dashboard</p>
+  </div>
+  <a href="customer.html" target="_blank">← 顧客點餐機</a>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="dashboard">📈 儀表板</button>
+  <button class="tab" data-tab="orders">📋 訂單管理</button>
+  <button class="tab" data-tab="menu">☕ 菜單管理</button>
+  <button class="tab" data-tab="data">💾 資料維護</button>
+</div>
+
+<div class="container">
+
+  <!-- ===== 儀表板 ===== -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">今日營業額</div>
+        <div class="stat-value success" id="stat-today-revenue">$0</div>
+        <div class="stat-sub" id="stat-today-date">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日訂單數</div>
+        <div class="stat-value" id="stat-today-orders">0</div>
+        <div class="stat-sub" id="stat-today-status">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">累計營業額</div>
+        <div class="stat-value info" id="stat-all-revenue">$0</div>
+        <div class="stat-sub" id="stat-all-orders">0 筆訂單</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">待處理</div>
+        <div class="stat-value" id="stat-pending" style="color: var(--warn)">0</div>
+        <div class="stat-sub">尚未開始製作</div>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="card">
+        <h3>🔥 今日熱銷</h3>
+        <table id="hot-today-table">
+          <thead><tr><th>品項</th><th class="num">售出</th><th class="num">營收</th></tr></thead>
+          <tbody><tr><td colspan="3" class="empty">尚無資料</td></tr></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>⭐ 累計熱銷</h3>
+        <table id="hot-all-table">
+          <thead><tr><th>品項</th><th class="num">售出</th><th class="num">營收</th></tr></thead>
+          <tbody><tr><td colspan="3" class="empty">尚無資料</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📅 過去 7 日營收</h3>
+      <table id="last7-table">
+        <thead><tr><th>日期</th><th class="num">訂單數</th><th class="num">營業額</th></tr></thead>
+        <tbody><tr><td colspan="3" class="empty">尚無資料</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 訂單管理 ===== -->
+  <div class="panel" id="panel-orders">
+    <div class="card">
+      <h3>
+        訂單列表
+        <span class="auto-refresh-note">每 10 秒自動更新</span>
+      </h3>
+      <div class="filter-bar">
+        <label>狀態:
+          <select id="filter-status">
+            <option value="">全部</option>
+            <option value="pending">待處理</option>
+            <option value="preparing">製作中</option>
+            <option value="ready">可取餐</option>
+            <option value="completed">已完成</option>
+            <option value="cancelled">已取消</option>
+          </select>
+        </label>
+        <label>日期: <input type="date" id="filter-date"></label>
+        <button class="btn btn-primary" onclick="loadOrders()">🔄 重新整理</button>
+      </div>
+      <div class="order-list" id="order-list">
+        <div class="empty">載入中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 菜單管理 ===== -->
+  <div class="panel" id="panel-menu">
+    <div class="card">
+      <h3>
+        菜單品項
+        <button class="btn btn-primary" onclick="openMenuForm()">+ 新增品項</button>
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th>分類</th>
+            <th></th>
+            <th>名稱</th>
+            <th>說明</th>
+            <th class="num">價格</th>
+            <th>客製</th>
+            <th>上架</th>
+            <th>動作</th>
+          </tr>
+        </thead>
+        <tbody id="menu-table-body">
+          <tr><td colspan="8" class="empty">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 資料維護 ===== -->
+  <div class="panel" id="panel-data">
+    <div class="card">
+      <h3>💡 資料儲存說明</h3>
+      <p style="font-size:13px; line-height:1.7; color:var(--muted);">
+        本系統為 <strong>純前端版本</strong>,所有菜單與訂單資料儲存在 <strong>本機瀏覽器的 localStorage</strong>。<br>
+        ➡️ 換瀏覽器或清除瀏覽資料會讓資料消失,請定期 <strong>匯出備份</strong>。<br>
+        ➡️ 不同電腦之間 <strong>無法同步資料</strong>,各台裝置都是獨立的。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>📤 匯出資料</h3>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+        將目前的菜單與訂單存成 JSON 檔,可作為備份或在另一台電腦匯入。
+      </p>
+      <button class="btn btn-primary" onclick="exportData()">下載備份 JSON</button>
+    </div>
+
+    <div class="card">
+      <h3>📥 匯入資料</h3>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+        ⚠️ 將完全覆蓋現有資料。
+      </p>
+      <input type="file" id="import-file" accept=".json" style="margin-bottom:12px;">
+      <br>
+      <button class="btn btn-primary" onclick="importData()">確認匯入</button>
+    </div>
+
+    <div class="card">
+      <h3>🗑️ 重置 / 清除</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-warn" onclick="clearOrdersOnly()">清除所有訂單(保留菜單)</button>
+        <button class="btn btn-danger" onclick="resetEverything()">完全重置(回到預設菜單)</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 菜單編輯 modal -->
+<div class="modal-overlay" id="menu-modal">
+  <div class="modal">
+    <h3 id="menu-form-title">新增品項</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>分類 *</label>
+        <input id="m-category" placeholder="例: 咖啡" list="cat-list">
+        <datalist id="cat-list"></datalist>
+      </div>
+      <div class="field">
+        <label>圖示 emoji</label>
+        <input id="m-icon" placeholder="☕" maxlength="4">
+      </div>
+      <div class="field full">
+        <label>名稱 *</label>
+        <input id="m-name" placeholder="例: 拿鐵">
+      </div>
+      <div class="field full">
+        <label>描述</label>
+        <input id="m-description" placeholder="例: 濃縮配蒸奶,綿密奶香">
+      </div>
+      <div class="field">
+        <label>價格 (中杯) *</label>
+        <input id="m-price" type="number" min="0" placeholder="90">
+      </div>
+      <div class="field">
+        <label>排序</label>
+        <input id="m-sort" type="number" placeholder="0">
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="m-customizable" checked> 可客製化(尺寸)</label>
+      <label><input type="checkbox" id="m-temp" checked> 可選溫度</label>
+      <label><input type="checkbox" id="m-sweet" checked> 可選甜度</label>
+      <label><input type="checkbox" id="m-available" checked> 立即上架</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('menu-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveMenuItem()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+function toast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', error);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== 分頁 =====
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'dashboard') loadStats();
+    if (t.dataset.tab === 'orders') loadOrders();
+    if (t.dataset.tab === 'menu') loadAdminMenu();
+  });
+});
+
+// ===== 儀表板 =====
+function loadStats() {
+  try {
+    const s = db.getStats();
+    document.getElementById('stat-today-date').textContent = s.today.date;
+    document.getElementById('stat-today-revenue').textContent = '$' + s.today.revenue;
+    document.getElementById('stat-today-orders').textContent = s.today.order_count;
+    document.getElementById('stat-all-revenue').textContent = '$' + s.all_time.revenue;
+    document.getElementById('stat-all-orders').textContent = s.all_time.order_count + ' 筆訂單';
+
+    const ts = s.today_status;
+    document.getElementById('stat-pending').textContent = (ts.pending || 0) + (ts.preparing || 0);
+    document.getElementById('stat-today-status').textContent =
+      `製作 ${ts.preparing||0} · 可取 ${ts.ready||0} · 完成 ${ts.completed||0}`;
+
+    fillTable('hot-today-table', s.hot_today, ['name', 'qty', 'revenue'], [null, '', '$']);
+    fillTable('hot-all-table', s.hot_all, ['name', 'qty', 'revenue'], [null, '', '$']);
+    fillTable('last7-table', s.last7, ['d', 'orders', 'revenue'], [null, '', '$']);
+  } catch (e) {
+    toast('讀取統計失敗:' + e.message, true);
+  }
+}
+
+function fillTable(tableId, rows, cols, prefixes) {
+  const tbody = document.querySelector('#' + tableId + ' tbody');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" class="empty">尚無資料</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>${cols.map((c, i) => {
+      const cls = i === 0 ? '' : 'num';
+      const prefix = prefixes[i] || '';
+      return `<td class="${cls}">${prefix}${r[c] ?? ''}</td>`;
+    }).join('')}</tr>
+  `).join('');
+}
+
+// ===== 訂單管理 =====
+function loadOrders() {
+  try {
+    const status = document.getElementById('filter-status').value;
+    const date = document.getElementById('filter-date').value;
+    const orders = db.getOrders({ status, date });
+    const list = document.getElementById('order-list');
+    if (orders.length === 0) {
+      list.innerHTML = '<div class="empty">沒有符合條件的訂單</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o => renderOrderCard(o)).join('');
+  } catch (e) {
+    toast('讀取訂單失敗:' + e.message, true);
+  }
+}
+
+const STATUS_LABEL = {
+  pending: '待處理', preparing: '製作中', ready: '可取餐',
+  completed: '已完成', cancelled: '已取消'
+};
+
+function renderOrderCard(o) {
+  const itemsHtml = (o.items || []).map(i => `
+    <div>${i.name} × ${i.qty} <span style="color:var(--muted)">$${i.unit_price * i.qty}</span>
+      ${i.options ? `<div class="opts">${i.options}</div>` : ''}
+    </div>
+  `).join('');
+
+  const actions = nextActions(o);
+
+  return `
+    <div class="order-card s-${o.status}">
+      <div class="order-head">
+        <div>
+          <span class="order-no">#${o.order_no}</span>
+          <span class="badge s-${o.status}">${STATUS_LABEL[o.status]}</span>
+        </div>
+        <div class="order-time">${o.created_at}</div>
+      </div>
+      <div class="order-items">${itemsHtml}</div>
+      <div class="order-foot">
+        <div>
+          <span class="order-total">$${o.total}</span>
+          <span style="color:var(--muted); font-size:12px; margin-left:8px;">
+            (收 $${o.cash_received} / 找 $${o.change_given})
+          </span>
+        </div>
+        <div class="status-actions">${actions}</div>
+      </div>
+    </div>
+  `;
+}
+
+function nextActions(o) {
+  const btns = [];
+  if (o.status === 'pending') {
+    btns.push(`<button class="btn btn-warn" onclick="setStatus(${o.id}, 'preparing')">開始製作</button>`);
+    btns.push(`<button class="btn btn-danger" onclick="setStatus(${o.id}, 'cancelled')">取消</button>`);
+  } else if (o.status === 'preparing') {
+    btns.push(`<button class="btn btn-success" onclick="setStatus(${o.id}, 'ready')">完成製作</button>`);
+  } else if (o.status === 'ready') {
+    btns.push(`<button class="btn btn-primary" onclick="setStatus(${o.id}, 'completed')">已取餐</button>`);
+  }
+  return btns.join('');
+}
+
+function setStatus(id, status) {
+  try {
+    db.updateOrderStatus(id, status);
+    toast('狀態已更新');
+    loadOrders();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+document.getElementById('filter-status').addEventListener('change', loadOrders);
+document.getElementById('filter-date').addEventListener('change', loadOrders);
+
+// 訂單頁自動更新
+setInterval(() => {
+  if (document.getElementById('panel-orders').classList.contains('active')) loadOrders();
+}, 10000);
+
+// ===== 菜單管理 =====
+let editingId = null;
+let allCategories = new Set();
+
+function loadAdminMenu() {
+  try {
+    const items = db.getAllMenu();
+    allCategories = new Set(items.map(i => i.category));
+    const dl = document.getElementById('cat-list');
+    dl.innerHTML = [...allCategories].map(c => `<option value="${c}">`).join('');
+
+    const tbody = document.getElementById('menu-table-body');
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">尚無品項</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(m => `
+      <tr class="${m.is_available ? '' : 'sold-out'}">
+        <td>${m.category}</td>
+        <td style="font-size:22px;">${m.icon}</td>
+        <td><strong>${m.name}</strong></td>
+        <td style="color:var(--muted); font-size:12px;">${m.description || ''}</td>
+        <td class="num">$${m.base_price}</td>
+        <td>${[
+          m.customizable ? '尺寸' : '',
+          m.has_temp ? '溫度' : '',
+          m.has_sweet ? '甜度' : ''
+        ].filter(Boolean).join(' / ') || '—'}</td>
+        <td>
+          <label class="toggle">
+            <input type="checkbox" ${m.is_available ? 'checked' : ''}
+                   onchange="toggleAvailable(${m.id}, this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </td>
+        <td>
+          <button class="btn" onclick='editMenuItem(${JSON.stringify(m)})'>編輯</button>
+          <button class="btn btn-danger" onclick="deleteMenuItem(${m.id}, '${m.name.replace(/'/g, "\\'")}')">刪除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    toast('讀取菜單失敗:' + e.message, true);
+  }
+}
+
+function toggleAvailable(id, checked) {
+  try {
+    db.updateMenuItem(id, { is_available: checked ? 1 : 0 });
+    toast(checked ? '已上架' : '已標示售完');
+    loadAdminMenu();
+  } catch (e) {
+    toast(e.message, true);
+    loadAdminMenu();
+  }
+}
+
+function openMenuForm() {
+  editingId = null;
+  document.getElementById('menu-form-title').textContent = '新增品項';
+  document.getElementById('m-category').value = '';
+  document.getElementById('m-icon').value = '☕';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-description').value = '';
+  document.getElementById('m-price').value = '';
+  document.getElementById('m-sort').value = '0';
+  document.getElementById('m-customizable').checked = true;
+  document.getElementById('m-temp').checked = true;
+  document.getElementById('m-sweet').checked = true;
+  document.getElementById('m-available').checked = true;
+  showModal('menu-modal');
+}
+
+function editMenuItem(m) {
+  editingId = m.id;
+  document.getElementById('menu-form-title').textContent = '編輯品項 #' + m.id;
+  document.getElementById('m-category').value = m.category;
+  document.getElementById('m-icon').value = m.icon;
+  document.getElementById('m-name').value = m.name;
+  document.getElementById('m-description').value = m.description || '';
+  document.getElementById('m-price').value = m.base_price;
+  document.getElementById('m-sort').value = m.sort_order;
+  document.getElementById('m-customizable').checked = !!m.customizable;
+  document.getElementById('m-temp').checked = !!m.has_temp;
+  document.getElementById('m-sweet').checked = !!m.has_sweet;
+  document.getElementById('m-available').checked = !!m.is_available;
+  showModal('menu-modal');
+}
+
+function saveMenuItem() {
+  const payload = {
+    category: document.getElementById('m-category').value.trim(),
+    icon: document.getElementById('m-icon').value.trim() || '☕',
+    name: document.getElementById('m-name').value.trim(),
+    description: document.getElementById('m-description').value.trim(),
+    base_price: parseInt(document.getElementById('m-price').value) || 0,
+    sort_order: parseInt(document.getElementById('m-sort').value) || 0,
+    customizable: document.getElementById('m-customizable').checked ? 1 : 0,
+    has_temp: document.getElementById('m-temp').checked ? 1 : 0,
+    has_sweet: document.getElementById('m-sweet').checked ? 1 : 0,
+    is_available: document.getElementById('m-available').checked ? 1 : 0,
+  };
+
+  if (!payload.category || !payload.name || !payload.base_price) {
+    toast('分類、名稱、價格為必填', true);
+    return;
+  }
+
+  try {
+    if (editingId) {
+      db.updateMenuItem(editingId, payload);
+      toast('已更新');
+    } else {
+      db.createMenuItem(payload);
+      toast('已新增');
+    }
+    closeModal('menu-modal');
+    loadAdminMenu();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+function deleteMenuItem(id, name) {
+  if (!confirm(`確定要刪除「${name}」?\n(已存在的訂單記錄會保留)`)) return;
+  try {
+    db.deleteMenuItem(id);
+    toast('已刪除');
+    loadAdminMenu();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ===== 資料維護 =====
+function exportData() {
+  const data = db.exportAll();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cafe-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('已下載備份檔');
+}
+
+function importData() {
+  const file = document.getElementById('import-file').files[0];
+  if (!file) { toast('請先選檔案', true); return; }
+  if (!confirm('將完全覆蓋現有資料,確定?')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      db.importAll(JSON.parse(e.target.result));
+      toast('匯入成功!');
+      loadStats(); loadOrders(); loadAdminMenu();
+    } catch (err) {
+      toast('匯入失敗:' + err.message, true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearOrdersOnly() {
+  if (!confirm('將清除所有訂單記錄,菜單保留。確定?')) return;
+  db.clearOrders();
+  toast('訂單已清除');
+  loadStats(); loadOrders();
+}
+
+function resetEverything() {
+  if (!confirm('將清除所有資料(訂單 + 菜單),菜單回到預設 18 項。\n\n⚠️ 此操作無法復原,確定?')) return;
+  db.resetAll();
+  toast('已重置為初始狀態');
+  loadStats(); loadOrders(); loadAdminMenu();
+}
+
+// 預設日期 = 今日
+document.getElementById('filter-date').value = new Date().toISOString().slice(0, 10);
+
+// 初始載入
+loadStats();
+setInterval(() => {
+  if (document.getElementById('panel-dashboard').classList.contains('active')) loadStats();
+}, 30000);
+</script>
+
+</body>
+</html>

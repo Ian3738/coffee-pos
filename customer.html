@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>暖陽咖啡 · 自助點餐</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #faf6f1;
+    --card: #ffffff;
+    --primary: #6f4e37;
+    --primary-dark: #4a3424;
+    --accent: #c89b6f;
+    --text: #2d211a;
+    --muted: #8a7969;
+    --border: #e8ddd0;
+    --success: #4a7c59;
+    --danger: #b54545;
+  }
+  body {
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 24px 32px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 { font-size: 28px; letter-spacing: 2px; }
+  header p { opacity: 0.85; margin-top: 4px; font-size: 14px; }
+  header a {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  header a:hover { background: rgba(255,255,255,0.1); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    padding: 24px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .categories { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .cat-btn {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    padding: 8px 18px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .cat-btn:hover { border-color: var(--accent); }
+  .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .menu-item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .menu-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(111,78,55,0.12);
+    border-color: var(--accent);
+  }
+  .menu-item .icon { font-size: 48px; text-align: center; margin-bottom: 8px; }
+  .menu-item .name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .menu-item .desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; min-height: 32px; }
+  .menu-item .price { color: var(--primary); font-size: 18px; font-weight: 700; }
+  .loading { text-align: center; padding: 60px; color: var(--muted); }
+
+  .cart {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+  }
+  .cart h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cart-count {
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .cart-items { max-height: 380px; overflow-y: auto; margin-bottom: 16px; }
+  .cart-empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
+  .cart-item { padding: 12px 0; border-bottom: 1px dashed var(--border); }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .cart-item-name { font-weight: 600; font-size: 14px; }
+  .cart-item-options { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .cart-item-foot { display: flex; justify-content: space-between; align-items: center; }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn {
+    width: 24px; height: 24px;
+    border: 1px solid var(--border); background: #fff;
+    border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1;
+  }
+  .qty-btn:hover { background: var(--bg); }
+  .cart-item-price { font-weight: 600; color: var(--primary); }
+  .remove-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 12px; }
+
+  .cart-total { padding-top: 12px; border-top: 1.5px solid var(--border); }
+  .total-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+  .total-row.grand { font-size: 20px; font-weight: 700; color: var(--primary); margin-top: 8px; }
+
+  .checkout-btn {
+    width: 100%;
+    background: var(--primary); color: #fff; border: none;
+    padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 600;
+    cursor: pointer; margin-top: 16px; transition: background 0.2s;
+  }
+  .checkout-btn:hover { background: var(--primary-dark); }
+  .checkout-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; padding: 28px;
+    max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 20px; margin-bottom: 4px; }
+  .modal .modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+
+  .opt-group { margin-bottom: 18px; }
+  .opt-label { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: block; }
+  .opt-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opt-btn {
+    padding: 8px 14px; border: 1.5px solid var(--border);
+    background: #fff; border-radius: 8px; cursor: pointer;
+    font-size: 13px; transition: all 0.15s;
+  }
+  .opt-btn:hover { border-color: var(--accent); }
+  .opt-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .opt-btn .extra { font-size: 11px; opacity: 0.8; margin-left: 4px; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn-secondary { background: #f0e8de; color: var(--text); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+  .pay-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px; }
+  .pay-input {
+    width: 100%; padding: 12px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 18px; margin-top: 8px; text-align: right;
+  }
+  .pay-input:focus { outline: none; border-color: var(--primary); }
+  .quick-cash { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+  .cash-btn { padding: 8px; background: #f5efe7; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .cash-btn:hover { background: #ebe1d3; }
+  .change-display {
+    font-size: 28px; font-weight: 700; color: var(--success);
+    text-align: center; padding: 16px;
+    background: #f0f7f2; border-radius: 8px; margin-top: 12px;
+  }
+  .change-display.insufficient { color: var(--danger); background: #fdf0f0; }
+
+  .receipt {
+    font-family: "Courier New", monospace;
+    background: #fffdf9; border: 1px dashed var(--muted);
+    padding: 20px; border-radius: 6px; margin: 16px 0;
+  }
+  .receipt-head { text-align: center; border-bottom: 1px dashed var(--muted); padding-bottom: 10px; margin-bottom: 10px; }
+  .receipt-head .shop-name { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .receipt-head .order-no { font-size: 12px; color: var(--muted); }
+  .receipt-line { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .receipt-item-opts { font-size: 11px; color: var(--muted); padding-left: 8px; }
+  .receipt-divider { border-top: 1px dashed var(--muted); margin: 8px 0; }
+  .receipt-total { font-size: 15px; font-weight: 700; }
+  .receipt-foot { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--muted); font-size: 12px; color: var(--muted); }
+
+  .toast {
+    position: fixed; top: 80px; right: 24px;
+    background: var(--danger); color: #fff;
+    padding: 12px 20px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 200; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; padding: 16px; }
+    .cart { position: relative; top: 0; }
+    header { padding: 18px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>☕ 暖陽咖啡 Sunlit Café</h1>
+    <p>自助點餐系統 · Self-Order Kiosk</p>
+  </div>
+  <a href="admin.html" target="_blank">後台管理 →</a>
+</header>
+
+<div class="layout">
+  <main>
+    <div class="categories" id="categories"></div>
+    <div class="menu-grid" id="menuGrid">
+      <div class="loading">載入菜單中...</div>
+    </div>
+  </main>
+
+  <aside class="cart">
+    <h2>
+      <span>🛒 我的訂單</span>
+      <span class="cart-count" id="cartCount">0</span>
+    </h2>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">尚未加入任何品項</div>
+    </div>
+    <div class="cart-total" id="cartTotal" style="display:none;">
+      <div class="total-row"><span>小計</span><span id="subtotal">$0</span></div>
+      <div class="total-row"><span>品項數</span><span id="itemCount">0</span></div>
+      <div class="total-row grand"><span>合計</span><span id="grandTotal">$0</span></div>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" disabled>前往結帳</button>
+  </aside>
+</div>
+
+<div class="modal-overlay" id="customModal">
+  <div class="modal">
+    <h3 id="customTitle"></h3>
+    <p class="modal-sub" id="customDesc"></p>
+    <div class="opt-group" id="tempGroup">
+      <label class="opt-label">溫度</label>
+      <div class="opt-buttons" id="tempOpts"></div>
+    </div>
+    <div class="opt-group">
+      <label class="opt-label">尺寸</label>
+      <div class="opt-buttons" id="sizeOpts"></div>
+    </div>
+    <div class="opt-group" id="sweetGroup">
+      <label class="opt-label">甜度</label>
+      <div class="opt-buttons" id="sweetOpts"></div>
+    </div>
+    <div class="opt-group">
+      <label class="opt-label">數量</label>
+      <div class="opt-buttons">
+        <button class="opt-btn" onclick="changeQty(-1)">−</button>
+        <span class="opt-btn selected" id="qtyDisplay" style="min-width:60px; text-align:center;">1</span>
+        <button class="opt-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('customModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmAdd()">
+        加入訂單 <span id="customPrice"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <h3>💳 結帳</h3>
+    <p class="modal-sub">請輸入收取的金額</p>
+    <div class="pay-row"><span>應付金額</span><strong id="payTotal">$0</strong></div>
+    <input type="number" class="pay-input" id="cashInput" placeholder="輸入金額" min="0">
+    <div class="quick-cash">
+      <button class="cash-btn" onclick="quickCash(100)">+100</button>
+      <button class="cash-btn" onclick="quickCash(500)">+500</button>
+      <button class="cash-btn" onclick="quickCash(1000)">+1000</button>
+      <button class="cash-btn" onclick="exactCash()">剛好</button>
+    </div>
+    <div class="change-display" id="changeDisplay">找零 $0</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('payModal')">取消</button>
+      <button class="btn btn-primary" id="confirmPayBtn" onclick="confirmPayment()">確認付款</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="receiptModal">
+  <div class="modal">
+    <h3>✅ 訂單完成</h3>
+    <p class="modal-sub">感謝您的惠顧!請憑單號取餐</p>
+    <div class="receipt" id="receiptContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="printReceipt()">列印</button>
+      <button class="btn btn-primary" onclick="newOrder()">新訂單</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+const TEMP_OPTS = [
+  { id: 'hot', name: '熱', extra: 0 },
+  { id: 'ice', name: '冰', extra: 0 },
+];
+const SIZE_OPTS = [
+  { id: 'M', name: '中杯', extra: 0 },
+  { id: 'L', name: '大杯', extra: 15 },
+];
+const SWEET_OPTS = [
+  { id: 'no', name: '無糖' },
+  { id: 'less', name: '微糖' },
+  { id: 'half', name: '半糖' },
+  { id: 'normal', name: '全糖' },
+];
+
+let MENU = [];
+let cart = [];
+let currentItem = null;
+let currentOpts = { temp: 'hot', size: 'M', sweet: 'half', qty: 1 };
+let activeCategory = '全部';
+let lastOrder = null;
+
+// ====== Toast ======
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ====== 載入菜單(從 localStorage)======
+function loadMenu() {
+  try {
+    MENU = db.getMenu();
+    renderCategories();
+    renderMenu();
+  } catch (e) {
+    document.getElementById('menuGrid').innerHTML =
+      `<div class="loading">無法載入菜單:${e.message}</div>`;
+  }
+}
+
+function renderCategories() {
+  const cats = ['全部', ...Array.from(new Set(MENU.map(m => m.category)))];
+  document.getElementById('categories').innerHTML = cats.map(c =>
+    `<button class="cat-btn ${c === activeCategory ? 'active' : ''}" onclick="selectCategory('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCategory(c) {
+  activeCategory = c;
+  renderCategories();
+  renderMenu();
+}
+
+function renderMenu() {
+  const items = activeCategory === '全部' ? MENU : MENU.filter(m => m.category === activeCategory);
+  if (items.length === 0) {
+    document.getElementById('menuGrid').innerHTML = '<div class="loading">此分類目前沒有品項</div>';
+    return;
+  }
+  document.getElementById('menuGrid').innerHTML = items.map(m => `
+    <div class="menu-item" onclick="openCustom(${m.id})">
+      <div class="icon">${m.icon}</div>
+      <div class="name">${m.name}</div>
+      <div class="desc">${m.description || ''}</div>
+      <div class="price">$${m.base_price}</div>
+    </div>
+  `).join('');
+}
+
+// ====== 客製化 ======
+function openCustom(id) {
+  currentItem = MENU.find(m => m.id === id);
+  if (!currentItem) return;
+  currentOpts = { temp: 'hot', size: 'M', sweet: 'half', qty: 1 };
+
+  document.getElementById('customTitle').textContent = currentItem.icon + ' ' + currentItem.name;
+  document.getElementById('customDesc').textContent = currentItem.description || '';
+
+  if (!currentItem.customizable) {
+    addToCartDirect();
+    return;
+  }
+
+  document.getElementById('tempGroup').style.display = currentItem.has_temp ? '' : 'none';
+  document.getElementById('sweetGroup').style.display = currentItem.has_sweet ? '' : 'none';
+
+  if (currentItem.has_temp) renderOpts('tempOpts', TEMP_OPTS, 'temp');
+  renderOpts('sizeOpts', SIZE_OPTS, 'size');
+  if (currentItem.has_sweet) renderOpts('sweetOpts', SWEET_OPTS, 'sweet');
+
+  updatePriceDisplay();
+  document.getElementById('qtyDisplay').textContent = '1';
+  showModal('customModal');
+}
+
+function renderOpts(containerId, opts, key) {
+  document.getElementById(containerId).innerHTML = opts.map(o => `
+    <button class="opt-btn ${currentOpts[key] === o.id ? 'selected' : ''}" onclick="selectOpt('${key}', '${o.id}')">
+      ${o.name}${o.extra ? `<span class="extra">+$${o.extra}</span>` : ''}
+    </button>
+  `).join('');
+}
+
+function selectOpt(key, id) {
+  currentOpts[key] = id;
+  if (key === 'temp') renderOpts('tempOpts', TEMP_OPTS, 'temp');
+  if (key === 'size') renderOpts('sizeOpts', SIZE_OPTS, 'size');
+  if (key === 'sweet') renderOpts('sweetOpts', SWEET_OPTS, 'sweet');
+  updatePriceDisplay();
+}
+
+function changeQty(delta) {
+  currentOpts.qty = Math.max(1, currentOpts.qty + delta);
+  document.getElementById('qtyDisplay').textContent = currentOpts.qty;
+  updatePriceDisplay();
+}
+
+function calcItemPrice(item, opts) {
+  let price = item.base_price;
+  const sizeOpt = SIZE_OPTS.find(s => s.id === opts.size);
+  if (sizeOpt) price += sizeOpt.extra;
+  return price;
+}
+
+function updatePriceDisplay() {
+  const unitPrice = calcItemPrice(currentItem, currentOpts);
+  document.getElementById('customPrice').textContent = `($${unitPrice * currentOpts.qty})`;
+}
+
+function addToCartDirect() {
+  cart.push({
+    menu_item_id: currentItem.id,
+    name: currentItem.name,
+    icon: currentItem.icon,
+    options: '',
+    qty: 1,
+    unit_price: currentItem.base_price,
+  });
+  renderCart();
+}
+
+function confirmAdd() {
+  const unitPrice = calcItemPrice(currentItem, currentOpts);
+  const parts = [];
+  if (currentItem.has_temp) parts.push(TEMP_OPTS.find(o => o.id === currentOpts.temp).name);
+  parts.push(SIZE_OPTS.find(o => o.id === currentOpts.size).name);
+  if (currentItem.has_sweet) parts.push(SWEET_OPTS.find(o => o.id === currentOpts.sweet).name);
+
+  cart.push({
+    menu_item_id: currentItem.id,
+    name: currentItem.name,
+    icon: currentItem.icon,
+    options: parts.join(' / '),
+    qty: currentOpts.qty,
+    unit_price: unitPrice,
+  });
+  closeModal('customModal');
+  renderCart();
+}
+
+// ====== 購物車 ======
+function renderCart() {
+  const container = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+
+  if (cart.length === 0) {
+    container.innerHTML = '<div class="cart-empty">尚未加入任何品項</div>';
+    totalEl.style.display = 'none';
+    checkoutBtn.disabled = true;
+    document.getElementById('cartCount').textContent = '0';
+    return;
+  }
+
+  container.innerHTML = cart.map((c, i) => `
+    <div class="cart-item">
+      <div class="cart-item-head">
+        <span class="cart-item-name">${c.icon} ${c.name}</span>
+        <button class="remove-btn" onclick="removeItem(${i})">移除</button>
+      </div>
+      ${c.options ? `<div class="cart-item-options">${c.options}</div>` : ''}
+      <div class="cart-item-foot">
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="updateQty(${i}, -1)">−</button>
+          <span>${c.qty}</span>
+          <button class="qty-btn" onclick="updateQty(${i}, 1)">+</button>
+        </div>
+        <span class="cart-item-price">$${c.unit_price * c.qty}</span>
+      </div>
+    </div>
+  `).join('');
+
+  const subtotal = cart.reduce((s, c) => s + c.unit_price * c.qty, 0);
+  const itemCount = cart.reduce((s, c) => s + c.qty, 0);
+  document.getElementById('subtotal').textContent = '$' + subtotal;
+  document.getElementById('itemCount').textContent = itemCount + ' 件';
+  document.getElementById('grandTotal').textContent = '$' + subtotal;
+  document.getElementById('cartCount').textContent = itemCount;
+  totalEl.style.display = '';
+  checkoutBtn.disabled = false;
+}
+
+function removeItem(i) { cart.splice(i, 1); renderCart(); }
+function updateQty(i, delta) { cart[i].qty = Math.max(1, cart[i].qty + delta); renderCart(); }
+
+// ====== 結帳 ======
+function openCheckout() {
+  const total = cart.reduce((s, c) => s + c.unit_price * c.qty, 0);
+  document.getElementById('payTotal').textContent = '$' + total;
+  document.getElementById('cashInput').value = '';
+  updateChange();
+  showModal('payModal');
+  setTimeout(() => document.getElementById('cashInput').focus(), 100);
+}
+
+function quickCash(amount) {
+  const input = document.getElementById('cashInput');
+  input.value = (parseInt(input.value) || 0) + amount;
+  updateChange();
+}
+
+function exactCash() {
+  const total = cart.reduce((s, c) => s + c.unit_price * c.qty, 0);
+  document.getElementById('cashInput').value = total;
+  updateChange();
+}
+
+function updateChange() {
+  const total = cart.reduce((s, c) => s + c.unit_price * c.qty, 0);
+  const cash = parseInt(document.getElementById('cashInput').value) || 0;
+  const change = cash - total;
+  const display = document.getElementById('changeDisplay');
+  const btn = document.getElementById('confirmPayBtn');
+
+  if (cash === 0) {
+    display.textContent = '請輸入收取金額';
+    display.classList.remove('insufficient');
+    btn.disabled = true;
+  } else if (change < 0) {
+    display.textContent = `尚差 $${-change}`;
+    display.classList.add('insufficient');
+    btn.disabled = true;
+  } else {
+    display.textContent = `找零 $${change}`;
+    display.classList.remove('insufficient');
+    btn.disabled = false;
+  }
+}
+
+function confirmPayment() {
+  const cash = parseInt(document.getElementById('cashInput').value) || 0;
+  const btn = document.getElementById('confirmPayBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+
+  try {
+    const order = db.createOrder({
+      items: cart.map(c => ({
+        menu_item_id: c.menu_item_id,
+        name: c.name,
+        qty: c.qty,
+        unit_price: c.unit_price,
+        options: c.options,
+      })),
+      cash_received: cash,
+    });
+    lastOrder = order;
+    showReceipt(order);
+    closeModal('payModal');
+  } catch (e) {
+    showToast(e.message);
+    if (e.message.includes('售完')) loadMenu();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '確認付款';
+  }
+}
+
+function showReceipt(order) {
+  const time = new Date().toLocaleString('zh-TW', { hour12: false });
+  const itemsHtml = cart.map(c => `
+    <div class="receipt-line">
+      <span>${c.name} x${c.qty}</span>
+      <span>$${c.unit_price * c.qty}</span>
+    </div>
+    ${c.options ? `<div class="receipt-item-opts">${c.options}</div>` : ''}
+  `).join('');
+
+  document.getElementById('receiptContent').innerHTML = `
+    <div class="receipt-head">
+      <div class="shop-name">暖陽咖啡 Sunlit Café</div>
+      <div class="order-no">單號 ${order.order_no}</div>
+      <div class="order-no">${time}</div>
+    </div>
+    ${itemsHtml}
+    <div class="receipt-divider"></div>
+    <div class="receipt-line receipt-total"><span>合計</span><span>$${order.total}</span></div>
+    <div class="receipt-line"><span>實收</span><span>$${order.cash_received}</span></div>
+    <div class="receipt-line"><span>找零</span><span>$${order.change_given}</span></div>
+    <div class="receipt-foot">~ 謝謝光臨,期待再見 ~</div>
+  `;
+  showModal('receiptModal');
+}
+
+function printReceipt() {
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html><head><title>收據</title>
+    <style>body{font-family:monospace;padding:20px;max-width:300px;margin:auto;}</style>
+    </head><body>${document.getElementById('receiptContent').innerHTML}</body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+function newOrder() {
+  cart = [];
+  renderCart();
+  closeModal('receiptModal');
+  loadMenu();
+}
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+document.getElementById('checkoutBtn').addEventListener('click', openCheckout);
+document.getElementById('cashInput').addEventListener('input', updateChange);
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+loadMenu();
+renderCart();
+</script>
+
+</body>
+</html>
