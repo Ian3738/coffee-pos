@@ -324,6 +324,10 @@
       <label class="opt-label">溫度</label>
       <div class="opt-buttons" id="tempOpts"></div>
     </div>
+    <div class="opt-group" id="iceGroup" style="display:none;">
+      <label class="opt-label">冰量</label>
+      <div class="opt-buttons" id="iceOpts"></div>
+    </div>
     <div class="opt-group">
       <label class="opt-label">尺寸</label>
       <div class="opt-buttons" id="sizeOpts"></div>
@@ -386,24 +390,32 @@
 <script src="data.js"></script>
 <script>
 const TEMP_OPTS = [
-  { id: 'hot', name: '熱', extra: 0 },
-  { id: 'ice', name: '冰', extra: 0 },
+  { id: 'hot',    name: '熱',   extra: 0 },
+  { id: 'ice',    name: '冰',   extra: 0 },
+  { id: 'room',   name: '常溫', extra: 0 },
+];
+const ICE_OPTS = [
+  { id: 'normal', name: '正常冰' },
+  { id: 'less',   name: '少冰'   },
+  { id: 'half',   name: '半冰'   },
+  { id: 'light',  name: '微冰'   },
+  { id: 'no',     name: '去冰'   },
 ];
 const SIZE_OPTS = [
   { id: 'M', name: '中杯', extra: 0 },
   { id: 'L', name: '大杯', extra: 15 },
 ];
 const SWEET_OPTS = [
-  { id: 'no', name: '無糖' },
-  { id: 'less', name: '微糖' },
-  { id: 'half', name: '半糖' },
+  { id: 'no',     name: '無糖' },
+  { id: 'less',   name: '微糖' },
+  { id: 'half',   name: '半糖' },
   { id: 'normal', name: '全糖' },
 ];
 
 let MENU = [];
 let cart = [];
 let currentItem = null;
-let currentOpts = { temp: 'hot', size: 'M', sweet: 'half', qty: 1 };
+let currentOpts = { temp: 'hot', ice: 'normal', size: 'M', sweet: 'half', qty: 1 };
 let activeCategory = '全部';
 let lastOrder = null;
 
@@ -460,7 +472,7 @@ function renderMenu() {
 function openCustom(id) {
   currentItem = MENU.find(m => m.id === id);
   if (!currentItem) return;
-  currentOpts = { temp: 'hot', size: 'M', sweet: 'half', qty: 1 };
+  currentOpts = { temp: 'hot', ice: 'normal', size: 'M', sweet: 'half', qty: 1 };
 
   document.getElementById('customTitle').textContent = currentItem.icon + ' ' + currentItem.name;
   document.getElementById('customDesc').textContent = currentItem.description || '';
@@ -476,10 +488,17 @@ function openCustom(id) {
   if (currentItem.has_temp) renderOpts('tempOpts', TEMP_OPTS, 'temp');
   renderOpts('sizeOpts', SIZE_OPTS, 'size');
   if (currentItem.has_sweet) renderOpts('sweetOpts', SWEET_OPTS, 'sweet');
+  updateIceVisibility();
 
   updatePriceDisplay();
   document.getElementById('qtyDisplay').textContent = '1';
   showModal('customModal');
+}
+
+function updateIceVisibility() {
+  const showIce = currentItem && currentItem.has_temp && currentOpts.temp === 'ice';
+  document.getElementById('iceGroup').style.display = showIce ? '' : 'none';
+  if (showIce) renderOpts('iceOpts', ICE_OPTS, 'ice');
 }
 
 function renderOpts(containerId, opts, key) {
@@ -492,8 +511,12 @@ function renderOpts(containerId, opts, key) {
 
 function selectOpt(key, id) {
   currentOpts[key] = id;
-  if (key === 'temp') renderOpts('tempOpts', TEMP_OPTS, 'temp');
-  if (key === 'size') renderOpts('sizeOpts', SIZE_OPTS, 'size');
+  if (key === 'temp') {
+    renderOpts('tempOpts', TEMP_OPTS, 'temp');
+    updateIceVisibility();
+  }
+  if (key === 'ice')   renderOpts('iceOpts',   ICE_OPTS,   'ice');
+  if (key === 'size')  renderOpts('sizeOpts',  SIZE_OPTS,  'size');
   if (key === 'sweet') renderOpts('sweetOpts', SWEET_OPTS, 'sweet');
   updatePriceDisplay();
 }
@@ -532,6 +555,9 @@ function confirmAdd() {
   const unitPrice = calcItemPrice(currentItem, currentOpts);
   const parts = [];
   if (currentItem.has_temp) parts.push(TEMP_OPTS.find(o => o.id === currentOpts.temp).name);
+  if (currentItem.has_temp && currentOpts.temp === 'ice') {
+    parts.push(ICE_OPTS.find(o => o.id === currentOpts.ice).name);
+  }
   parts.push(SIZE_OPTS.find(o => o.id === currentOpts.size).name);
   if (currentItem.has_sweet) parts.push(SWEET_OPTS.find(o => o.id === currentOpts.sweet).name);
 
