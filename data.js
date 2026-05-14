@@ -1,5 +1,5 @@
 /**
- * 暖陽咖啡 — 共用資料層
+ * 晤光咖啡 — 共用資料層
  * 用 localStorage 取代後端資料庫,讓專案能部署到 GitHub Pages
  *
  * 提供的 API 與 Flask 版本對應:

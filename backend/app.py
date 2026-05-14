@@ -1,4 +1,4 @@
-"""暖陽咖啡 點餐系統 — Flask 後端 + REST API。"""
+"""晤光咖啡 點餐系統 — Flask 後端 + REST API。"""
 import json
 import time
 from datetime import datetime, date
@@ -311,7 +311,7 @@ if __name__ == '__main__':
     init_db()
     port = int(os.environ.get('PORT', 5001))
     print('==============================================')
-    print('☕ 暖陽咖啡 點餐系統 啟動中...')
+    print('☕ 晤光咖啡 點餐系統 啟動中...')
     print(f'   顧客點餐機:  http://localhost:{port}/')
     print(f'   後台管理頁:  http://localhost:{port}/admin')
     print('==============================================')
