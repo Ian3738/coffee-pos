@@ -93,6 +93,20 @@
       }));
       write(KEYS.menu, seeded);
       write(KEYS.seq, { menu: seeded.length, order: 0 });
+    } else {
+      // 遷移:舊版菜單可能缺 image_url,從 DEFAULT_MENU 依品名補回
+      const byName = new Map(DEFAULT_MENU.map(d => [d.name, d.image_url]));
+      let patched = 0;
+      for (const m of menu) {
+        if (!m.image_url && byName.has(m.name)) {
+          m.image_url = byName.get(m.name);
+          patched++;
+        }
+      }
+      if (patched > 0) {
+        write(KEYS.menu, menu);
+        console.log(`[菜單遷移] 補上 ${patched} 張照片`);
+      }
     }
   }
 
