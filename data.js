@@ -24,25 +24,27 @@
   };
 
   // ====== 預設菜單 ======
+  // 圖片來源:Unsplash (免費商用,無需註明)
+  const IMG = id => `https://images.unsplash.com/photo-${id}?w=600&h=400&fit=crop&auto=format&q=80`;
   const DEFAULT_MENU = [
-    { category: '咖啡', icon: '☕', name: '濃縮咖啡',     description: '單份義式濃縮',       base_price: 60,  customizable: 1, has_temp: 0, has_sweet: 0 },
-    { category: '咖啡', icon: '☕', name: '美式咖啡',     description: '濃縮加熱水',         base_price: 75,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '咖啡', icon: '🥛', name: '拿鐵',         description: '濃縮配蒸奶,綿密奶香', base_price: 90,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '咖啡', icon: '☕', name: '卡布奇諾',     description: '經典奶泡咖啡',       base_price: 90,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '咖啡', icon: '🍫', name: '摩卡',         description: '巧克力與咖啡的融合', base_price: 100, customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '咖啡', icon: '🍯', name: '焦糖瑪奇朵',   description: '焦糖香氣濃郁',       base_price: 110, customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '茶飲', icon: '🍵', name: '英式紅茶',     description: '錫蘭紅茶',           base_price: 60,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '茶飲', icon: '🍵', name: '日式煎茶',     description: '甘醇綠茶',           base_price: 70,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '茶飲', icon: '🥛', name: '鮮奶茶',       description: '紅茶配上鮮奶',       base_price: 85,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '茶飲', icon: '🍑', name: '水蜜桃水果茶', description: '果香繽紛',           base_price: 95,  customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '特調', icon: '🍫', name: '熱可可',       description: '醇厚比利時可可',     base_price: 95,  customizable: 1, has_temp: 0, has_sweet: 0 },
-    { category: '特調', icon: '🍵', name: '抹茶拿鐵',     description: '京都宇治抹茶',       base_price: 110, customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '特調', icon: '🌾', name: '燕麥拿鐵',     description: '植物奶 · 低負擔',    base_price: 120, customizable: 1, has_temp: 1, has_sweet: 1 },
-    { category: '點心', icon: '🥐', name: '法式可頌',     description: '層次酥香',           base_price: 55,  customizable: 0, has_temp: 0, has_sweet: 0 },
-    { category: '點心', icon: '🍰', name: '提拉米蘇',     description: '經典義式甜點',       base_price: 120, customizable: 0, has_temp: 0, has_sweet: 0 },
-    { category: '點心', icon: '🧀', name: '紐約起司蛋糕', description: '濃郁起司風味',       base_price: 130, customizable: 0, has_temp: 0, has_sweet: 0 },
-    { category: '點心', icon: '🍪', name: '巧克力餅乾',   description: '手工烘焙',           base_price: 45,  customizable: 0, has_temp: 0, has_sweet: 0 },
-    { category: '點心', icon: '🥯', name: '原味貝果',     description: '紐約風味',           base_price: 65,  customizable: 0, has_temp: 0, has_sweet: 0 },
+    { category: '咖啡', icon: '☕', name: '濃縮咖啡',     description: '單份義式濃縮',       base_price: 60,  customizable: 1, has_temp: 0, has_sweet: 0, image_url: IMG('1510707577719-ae7c14805e3a') },
+    { category: '咖啡', icon: '☕', name: '美式咖啡',     description: '濃縮加熱水',         base_price: 75,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1497935586351-b67a49e012bf') },
+    { category: '咖啡', icon: '🥛', name: '拿鐵',         description: '濃縮配蒸奶,綿密奶香', base_price: 90,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1561882468-9110e03e0f78') },
+    { category: '咖啡', icon: '☕', name: '卡布奇諾',     description: '經典奶泡咖啡',       base_price: 90,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1572442388796-11668a67e53d') },
+    { category: '咖啡', icon: '🍫', name: '摩卡',         description: '巧克力與咖啡的融合', base_price: 100, customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1542990253-0d0f5be5f0ed') },
+    { category: '咖啡', icon: '🍯', name: '焦糖瑪奇朵',   description: '焦糖香氣濃郁',       base_price: 110, customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1517701604599-bb29b565090c') },
+    { category: '茶飲', icon: '🍵', name: '英式紅茶',     description: '錫蘭紅茶',           base_price: 60,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1597481499750-3e6b22637e12') },
+    { category: '茶飲', icon: '🍵', name: '日式煎茶',     description: '甘醇綠茶',           base_price: 70,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1564890369478-c89ca6d9cde9') },
+    { category: '茶飲', icon: '🥛', name: '鮮奶茶',       description: '紅茶配上鮮奶',       base_price: 85,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1517256064527-09c73fc73e38') },
+    { category: '茶飲', icon: '🍑', name: '水蜜桃水果茶', description: '果香繽紛',           base_price: 95,  customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1570696516188-ade861b84a49') },
+    { category: '特調', icon: '🍫', name: '熱可可',       description: '醇厚比利時可可',     base_price: 95,  customizable: 1, has_temp: 0, has_sweet: 0, image_url: IMG('1534687941688-651ccaafbff8') },
+    { category: '特調', icon: '🍵', name: '抹茶拿鐵',     description: '京都宇治抹茶',       base_price: 110, customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1515823064-d6e0c04616a7') },
+    { category: '特調', icon: '🌾', name: '燕麥拿鐵',     description: '植物奶 · 低負擔',    base_price: 120, customizable: 1, has_temp: 1, has_sweet: 1, image_url: IMG('1568649929103-28ffbefaca1e') },
+    { category: '點心', icon: '🥐', name: '法式可頌',     description: '層次酥香',           base_price: 55,  customizable: 0, has_temp: 0, has_sweet: 0, image_url: IMG('1555507036-ab1f4038808a') },
+    { category: '點心', icon: '🍰', name: '提拉米蘇',     description: '經典義式甜點',       base_price: 120, customizable: 0, has_temp: 0, has_sweet: 0, image_url: IMG('1571877227200-a0d98ea607e9') },
+    { category: '點心', icon: '🧀', name: '紐約起司蛋糕', description: '濃郁起司風味',       base_price: 130, customizable: 0, has_temp: 0, has_sweet: 0, image_url: IMG('1567171466295-4afa63d45416') },
+    { category: '點心', icon: '🍪', name: '巧克力餅乾',   description: '手工烘焙',           base_price: 45,  customizable: 0, has_temp: 0, has_sweet: 0, image_url: IMG('1499636136210-6f4ee915583e') },
+    { category: '點心', icon: '🥯', name: '原味貝果',     description: '紐約風味',           base_price: 65,  customizable: 0, has_temp: 0, has_sweet: 0, image_url: IMG('1517433367423-c7e5b0f35086') },
   ];
 
   // ====== 內部 ======
@@ -123,6 +125,7 @@
       has_sweet: item.has_sweet ? 1 : 0,
       is_available: item.is_available !== undefined ? (item.is_available ? 1 : 0) : 1,
       sort_order: parseInt(item.sort_order) || 999,
+      image_url: item.image_url || '',
       created_at: nowLocal(),
     };
     menu.push(newItem);

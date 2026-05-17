@@ -125,14 +125,15 @@ def admin_create_menu():
     with db_cursor() as conn:
         cur = conn.execute("""
             INSERT INTO menu_items
-                (category, icon, name, description, base_price,
+                (category, icon, name, description, image_url, base_price,
                  customizable, has_temp, has_sweet, is_available, sort_order)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
         """, (
             data['category'],
             data.get('icon', '☕'),
             data['name'],
             data.get('description', ''),
+            data.get('image_url', ''),
             int(data['base_price']),
             int(data.get('customizable', 1)),
             int(data.get('has_temp', 1)),
@@ -148,7 +149,7 @@ def admin_create_menu():
 @app.route('/api/admin/menu/<int:item_id>', methods=['PUT'])
 def admin_update_menu(item_id):
     data = request.get_json(force=True)
-    fields = ['category', 'icon', 'name', 'description', 'base_price',
+    fields = ['category', 'icon', 'name', 'description', 'image_url', 'base_price',
               'customizable', 'has_temp', 'has_sweet', 'is_available', 'sort_order']
     sets, values = [], []
     for f in fields:

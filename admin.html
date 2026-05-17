@@ -304,6 +304,28 @@
 
   /* 菜單管理 */
   .menu-table img.icon-cell { font-size: 22px; }
+  .menu-thumb {
+    width: 56px; height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #f5efe7 0%, #e8ddd0 100%);
+    display: block;
+  }
+  .menu-thumb-fallback {
+    width: 56px; height: 56px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #f5efe7 0%, #e8ddd0 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .preview-thumb {
+    width: 100%; height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f5efe7 0%, #e8ddd0 100%);
+    margin-top: 6px;
+    display: block;
+  }
   .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -496,7 +518,7 @@
         <thead>
           <tr>
             <th>分類</th>
-            <th></th>
+            <th>照片</th>
             <th>名稱</th>
             <th>說明</th>
             <th class="num">價格</th>
@@ -573,6 +595,11 @@
       <div class="field full">
         <label>描述</label>
         <input id="m-description" placeholder="例: 濃縮配蒸奶,綿密奶香">
+      </div>
+      <div class="field full">
+        <label>圖片網址 (留空則顯示 emoji)</label>
+        <input id="m-image" type="url" placeholder="https://..." oninput="updateImagePreview()">
+        <img id="m-image-preview" class="preview-thumb" alt="" style="display:none;">
       </div>
       <div class="field">
         <label>價格 (中杯) *</label>
@@ -763,7 +790,13 @@ function loadAdminMenu() {
     tbody.innerHTML = items.map(m => `
       <tr class="${m.is_available ? '' : 'sold-out'}">
         <td>${m.category}</td>
-        <td style="font-size:22px;">${m.icon}</td>
+        <td>
+          ${m.image_url
+            ? `<img class="menu-thumb" src="${m.image_url}" alt=""
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+               <div class="menu-thumb-fallback" style="display:none;">${m.icon}</div>`
+            : `<div class="menu-thumb-fallback">${m.icon}</div>`}
+        </td>
         <td><strong>${m.name}</strong></td>
         <td style="color:var(--muted); font-size:12px;">${m.description || ''}</td>
         <td class="num">$${m.base_price}</td>
@@ -808,12 +841,14 @@ function openMenuForm() {
   document.getElementById('m-icon').value = '☕';
   document.getElementById('m-name').value = '';
   document.getElementById('m-description').value = '';
+  document.getElementById('m-image').value = '';
   document.getElementById('m-price').value = '';
   document.getElementById('m-sort').value = '0';
   document.getElementById('m-customizable').checked = true;
   document.getElementById('m-temp').checked = true;
   document.getElementById('m-sweet').checked = true;
   document.getElementById('m-available').checked = true;
+  updateImagePreview();
   showModal('menu-modal');
 }
 
@@ -824,13 +859,27 @@ function editMenuItem(m) {
   document.getElementById('m-icon').value = m.icon;
   document.getElementById('m-name').value = m.name;
   document.getElementById('m-description').value = m.description || '';
+  document.getElementById('m-image').value = m.image_url || '';
   document.getElementById('m-price').value = m.base_price;
   document.getElementById('m-sort').value = m.sort_order;
   document.getElementById('m-customizable').checked = !!m.customizable;
   document.getElementById('m-temp').checked = !!m.has_temp;
   document.getElementById('m-sweet').checked = !!m.has_sweet;
   document.getElementById('m-available').checked = !!m.is_available;
+  updateImagePreview();
   showModal('menu-modal');
+}
+
+function updateImagePreview() {
+  const url = document.getElementById('m-image').value.trim();
+  const img = document.getElementById('m-image-preview');
+  if (url) {
+    img.src = url;
+    img.style.display = '';
+    img.onerror = () => { img.style.display = 'none'; };
+  } else {
+    img.style.display = 'none';
+  }
 }
 
 function saveMenuItem() {
@@ -839,6 +888,7 @@ function saveMenuItem() {
     icon: document.getElementById('m-icon').value.trim() || '☕',
     name: document.getElementById('m-name').value.trim(),
     description: document.getElementById('m-description').value.trim(),
+    image_url: document.getElementById('m-image').value.trim(),
     base_price: parseInt(document.getElementById('m-price').value) || 0,
     sort_order: parseInt(document.getElementById('m-sort').value) || 0,
     customizable: document.getElementById('m-customizable').checked ? 1 : 0,
